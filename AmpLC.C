@@ -3,17 +3,7 @@
 #include "TGraph.h"
 #include "TH1.h"
 #include "TStyle.h"
-
-Double_t AmplitudeLC(Double_t *x, Double_t *par) {
-  // par[0] = V0, par[1] = R, par[2] = L, par[3] = C
-  Float_t xx = x[0];
-  return par[0] * par[2] * (xx * (2 * M_PI)) /
-         sqrt(
-             par[1] * par[1] *
-                 (par[2] * par[3] * (xx * (2 * M_PI)) * (xx * (2 * M_PI)) - 1) *
-                 (par[2] * par[3] * (xx * (2 * M_PI)) * (xx * (2 * M_PI)) - 1) +
-             par[2] * par[2] * (xx * (2 * M_PI)) * (xx * (2 * M_PI)));
-}
+#include "Amp.h"
 
 void NotchGraphLC(Double_t V0, Double_t R, Double_t L, Double_t C) {
   gStyle->SetOptFit(1111);
