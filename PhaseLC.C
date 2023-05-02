@@ -4,6 +4,19 @@
 #include "TH1.h"
 #include "TRandom.h"
 
+void PhaseLC(Double_t R, Double_t L, Double_t C) {
+  TF1 *f = new TF1("f", PhaseLC, 4000, 20000, 4);
+  f->SetParameters(R, L, C);
+  TCanvas *c = new TCanvas("c", "myCanvas", 200, 200, 1000, 600);
+  TGraph *g = new TGraph("nomefile.txt","%lg%lg");
+  g->SetMarkerStyle(25);
+  TH1 *h = g->GetHistogram();
+  h->GetYaxis()->SetRangeUser(-2, 2);
+  g->Fit(f, "S0");
+  g->Draw("AP");
+  f->Draw("same");
+}
+
 void Rndm_PhaseLC(Double_t R, Double_t L, Double_t C) {
   gRandom->SetSeed();
   TF1 *f = new TF1("f", PhaseLC, 4000, 20000, 4);
