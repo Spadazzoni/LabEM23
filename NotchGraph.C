@@ -4,6 +4,7 @@
 #include "TGraph.h"
 #include "TH1.h"
 #include "TString.h"
+#include "FitR.h"
 
 void GraphR() {
   TCanvas *c = new TCanvas("c", "MyCanvas", 200, 200, 1000, 600);
@@ -20,7 +21,7 @@ void GraphR() {
     if (i == 0) {
       TH1 *h = g[i]->GetHistogram();
       h->GetYaxis()->SetRangeUser(0, 2.5);
-      h->SetTitle("Passa banda su #nu_{0}");
+      h->SetTitle("Nascondi banda su #nu_{0}");
       g[i]->Fit(f[i], "QS0");
       g[i]->Draw();
       f[i]->Draw("same");

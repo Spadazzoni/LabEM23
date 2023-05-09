@@ -21,7 +21,7 @@ void GraphLC() {
       TH1 *h = g[i]->GetHistogram();
       h->GetYaxis()->SetRangeUser(0, 2);
       h->GetXaxis()->SetRangeUser(4000, 20000);
-      h->SetTitle("Nascondi banda su #nu_{0}");
+      h->SetTitle("Passa banda su #nu_{0}");
       g[i]->Fit(f[i], "QS0");
       g[i]->Draw();
       f[i]->Draw("same");
