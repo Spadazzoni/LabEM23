@@ -1,10 +1,10 @@
 #include "Amp.h"
+#include "FitR.h"
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TGraph.h"
 #include "TH1.h"
 #include "TString.h"
-#include "FitR.h"
 
 void GraphR() {
   TCanvas *c = new TCanvas("c", "MyCanvas", 200, 200, 1000, 600);
@@ -15,8 +15,8 @@ void GraphR() {
   TF1 *f[5];
   for (int i = 0; i < 5; ++i) {
     g[i] = new TGraph(s[i] + ".txt", "%lg%lg");
-    f[i] = new TF1("f" + s[i], AmplitudeR, 0, 24000, 4);
-    f[i]->SetParameters(2.5, R[i], 1.005e-3, 159.6e-9);
+    f[i] = new TF1("f" + s[i], Real_AmplitudeR, 0, 24000, 4);
+    f[i]->SetParameters(2.5, R[i], 10.16e-3, 10.16e-9, 37.41, 50);
     f[i]->SetLineColor(col[i]);
     if (i == 0) {
       TH1 *h = g[i]->GetHistogram();
