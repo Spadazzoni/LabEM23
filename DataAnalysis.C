@@ -29,11 +29,11 @@ void DataAnalysis() {
       "Incertezza casuale sull'ampiezza dell'onda di potenziale erogata",
       "Incertezza casuale sulla fase dell'onda di potenziale erogata",
       "Incertezza casuale sulla lettura dell'ampiezza di un'onda quadra"};
-  Double_t XMin[N] = {499.924, 499.93, 2.5};
-  Double_t XMax[N] = {499.955, 499.95, 3.5};
-  Double_t YMin[N] = {2.1678, -1.25, 2.1};
+  Double_t XMin[N] = {499.924, 499.92, 2.5};
+  Double_t XMax[N] = {499.955, 499.96, 3.5};
+  Double_t YMin[N] = {2.1678, -1.25, 2.05};
   Double_t YMax[N] = {2.1685, 0, 2.3};
-  Int_t XBins[N] = {25, 10, 25};
+  Int_t XBins[N] = {25, 15, 25};
   Int_t YBins[N] = {65, 65, 65};
   for (int i = 0; i < N; ++i) {
     htot[i] = new TH2F(h + i, name[i], XBins[i], XMin[i], XMax[i], YBins[i],
