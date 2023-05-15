@@ -2,6 +2,7 @@
 
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TGraph.h"
 #include "TH1D.h"
 #include "TH1F.h"
 #include "TH2F.h"
@@ -31,10 +32,10 @@ void DataAnalysis() {
       "Incertezza casuale sulla lettura dell'ampiezza di un'onda quadra"};
   Double_t XMin[N] = {499.924, 499.92, 2.5};
   Double_t XMax[N] = {499.955, 499.96, 3.5};
-  Double_t YMin[N] = {2.1678, -1.25, 2.05};
+  Double_t YMin[N] = {2.1678, -0.2, 2.05};  // errore sistematico su phi
   Double_t YMax[N] = {2.1685, 0, 2.3};
   Int_t XBins[N] = {25, 15, 25};
-  Int_t YBins[N] = {65, 65, 65};
+  Int_t YBins[N] = {65, 10, 65};
   for (int i = 0; i < N; ++i) {
     htot[i] = new TH2F(h + i, name[i], XBins[i], XMin[i], XMax[i], YBins[i],
                        YMin[i], YMax[i]);
@@ -89,6 +90,10 @@ void DataAnalysis() {
       htotY[i]->Fit(ftotY[i], "qs0");
     }
   }
+  // analysing systematic error on phi
+  TGraph *g = new TGraph("ErrF.txt", "%lg%lg");
+  TF1 *ErrPhi = new TF1("ErrPhi", "[0]*x+[1]", 2700.12, 30000.1);
+  g->Fit(ErrPhi, "qs0");
   // saving data
   std::ofstream txt("./Data.txt", std::ofstream::out);
   if (txt.is_open()) {
@@ -153,6 +158,19 @@ void DataAnalysis() {
         << ftotY[2]->GetNDF() << '\n';
     txt << "Chi quadro ridotto: "
         << ftotY[2]->GetChisquare() / ftotY[2]->GetNDF() << '\n';
+    txt << '\n';
+    txt << '\n';
+    txt << "==> Fit lineare su distribuzione della fase in funzione della "
+           "frequenza (2.7k -> 30k)"
+        << '\n';
+    txt << "Coefficiente angolare:  " << ErrPhi->GetParameter(0) << "  +/-  "
+        << ErrPhi->GetParError(0) << '\n';
+    txt << "Intercetta:  " << ErrPhi->GetParameter(1) << "  +/-  "
+        << ErrPhi->GetParError(1) << "  deg" << '\n';
+    txt << "Chi quadro e GDL:  " << ErrPhi->GetChisquare() << " , "
+        << ErrPhi->GetNDF() << '\n';
+    txt << "Chi quadro ridotto: " << ErrPhi->GetChisquare() / ErrPhi->GetNDF()
+        << '\n';
     txt.close();
   } else {
     std::cout << "Cannot open File" << '\n';
