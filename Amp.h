@@ -60,3 +60,32 @@ Double_t Real_H_R(Double_t *x, Double_t *par) {
                         (rl * c * xx) * (rl * c * xx)),
                    2)));
 }
+
+Double_t Real_AmplitudeLC(Double_t *x, Double_t *par) {
+  Float_t xx = x[0] * 2 * M_PI;
+  Float_t v = par[0];
+  Float_t r = par[1];
+  Float_t l = par[2];
+  Float_t c = par[3];
+  Float_t rl = par[4];
+  Float_t rv = par[5];
+  Float_t Den =
+      pow((rl + (r + rv) * ((1 - xx * xx * l * c) * (1 - xx * xx * l * c) +
+                            (rl * c * xx) * (rl * c * xx))),
+          2) +
+      pow(xx * l * (1 - xx * xx * l * c) - rl * rl * c * xx, 2);
+  Float_t Num =
+      sqrt(pow(rl * rl +
+                   rl * (r + rv) *
+                       ((1 - xx * xx * l * c) * (1 - xx * xx * l * c) +
+                        (rl * c * xx) * (rl * c * xx)) +
+                   pow(xx * l * (1 - xx * xx * l * c) - rl * rl * c * xx, 2),
+               2) +
+           pow(pow(xx * l * (1 - xx * xx * l * c) - rl * rl * c * xx, 2) *
+                   pow(rl + (r + rv) *
+                                ((1 - xx * xx * l * c) * (1 - xx * xx * l * c) +
+                                 (rl * c * xx) * (rl * c * xx)),
+                       2),
+               2));
+  return v * Num / Den;
+}
