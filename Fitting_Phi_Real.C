@@ -16,7 +16,7 @@ void Fit() {
     if (!in.good()) {
       break;
     }
-    g->SetPoint(i, x, (y - (0.000195723 * x) )* (M_PI / 180));
+    g->SetPoint(i, x, (y - (0.000195723 * x) )* (M_PI / 180)); // 0.0005 dà fit perfetto
     ++i;
   }
   in.close();

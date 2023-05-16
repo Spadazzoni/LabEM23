@@ -42,3 +42,21 @@ Double_t Real_AmplitudeR(Double_t *x, Double_t *par) {
                         (rl * c * xx) * (rl * c * xx)),
                    2)));
 }
+
+Double_t Real_H_R(Double_t *x, Double_t *par) {
+  Float_t xx = x[0] * 2 * M_PI;
+  Float_t r = par[0];
+  Float_t l = par[1];
+  Float_t c = par[2];
+  Float_t rl = par[3];
+  Float_t rv = par[4];
+  return (r) /
+         (sqrt(pow(r + rv +
+                       rl / ((1 - xx * xx * l * c) * (1 - xx * xx * l * c) +
+                             (rl * c * xx) * (rl * c * xx)),
+                   2) +
+               pow((l * xx * (1 - l * c * xx * xx) - rl * rl * c * xx) /
+                       ((1 - xx * xx * l * c) * (1 - xx * xx * l * c) +
+                        (rl * c * xx) * (rl * c * xx)),
+                   2)));
+}
