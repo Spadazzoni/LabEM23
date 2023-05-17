@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "Amp.h"
 #include "GetQ.h"
 #include "TF1.h"
@@ -39,10 +41,25 @@ void DataAnalysis2() {
     w1[i] = H_R[i]->GetX(1 / sqrt(2), -10e10, w0);
     w2[i] = H_R[i]->GetX(1 / sqrt(2), w0, 10e10);
     Q[i] = w0 / (w2[i] - w1[i]);
-    std::cout << Q[i] << "  vs  " << R[i] * sqrt(10.15e-9 / 10.16e-3)
-              << "  +/-  "
-              << GetQErr(R[i], 10.16e-3, 10.15e-9, dR[i], (10.16e-3) * (0.01),
-                         (10.15e-9) * (0.01))
-              << '\n'; //dividendo il Q analitico per 2.5 si ottengono risultati compatibili
+  }
+  // saving data
+  std::ofstream txt("./Data2.txt", std::ofstream::out);
+  if (txt.is_open()) {
+    txt << "============================" << '\n';
+    txt << "||  RISULTATI SPERIMENTALI ||" << '\n';
+    txt << "============================" << '\n';
+    txt << '\n';
+    txt << '\n';
+    txt << "==> Confronto tra Q misurato e Q stimato" << '\n';
+    for (int i = 0; i < 5; ++i) {
+      txt << "Misurato"
+          << " (" << name[i] << "R):  " << Q[i]
+          << "  ||  Stimato:  " << R[i] * sqrt(10.15e-9 / 10.16e-3) << "  +/-  "
+          << GetQErr(R[i], 10.16e-3, 10.15e-9, dR[i], (10.16e-3) * (0.01),
+                     (10.15e-9) * (0.01))
+          << '\n';
+    }
+  } else {
+    std::cout << "Cannot Open File..." << '\n';
   }
 }
