@@ -3,38 +3,63 @@
 #include "Amp.h"
 #include "GetQ.h"
 #include "TF1.h"
+#include "TFile.h"
 #include "TGraph.h"
 #include "TGraphErrors.h"
 
 void DataAnalysis2() {
+  // creating a file
+  TFile *file = new TFile("MyDrawings.root", "recreate");
   // creating functions and graphs
   const Double_t w0 = 1 / (2 * M_PI * sqrt(10.16e-3 * 10.15e-9));
   const Double_t dw0 =
       (1 / (2 * M_PI * sqrt(10.16e-3 * 10.15e-9))) *
       sqrt((10.16e-3 * 0.01 * 10.16e-3 * 0.01) / (10.16e-3 * 10.16e-3) +
            (10.15e-9 * 0.01 * 10.15e-9 * 0.01) / (10.15e-9 * 10.15e-9));
-  TString f = "f";
+  TString gR = "gR";
+  TString gM = "gM";
+  TString fR = "fR";
+  TString fM = "fM";
   TString H = "H_{R}";
   TString name[5] = {"150", "330", "560", "1200", "2200"};
-  Double_t R[5] = {150.95, 328.98, 560.1, 1.979e3, 2194.8};
+  Double_t R[5] = {150.95, 328.98, 560.1, 1200,
+                   2194.8};  // la resistenza è effettivamente da 1200
   Double_t dR[5] = {1.15095e-3, 1.32898e-3, 1.5601e-3, 0.011979, 0.012948};
   TGraphErrors *gtotR[5];
   TGraphErrors *gtotM[5];
   TF1 *ftotR[5];
   TF1 *ftotM[5];
+  TString titleR[5] = {"Filtro arresta banda per R = 150 #Omega",
+                       "Filtro arresta banda per R = 330 #Omega",
+                       "Filtro arresta banda per R = 560 #Omega",
+                       "Filtro arresta banda per R = 1200 #Omega",
+                       "Filtro arresta banda per R = 2200 #Omega"};
+  TString titleM[5] = {"Filtro passa banda per R = 150 #Omega",
+                       "Filtro passa banda per R = 330 #Omega",
+                       "Filtro passa banda per R = 560 #Omega",
+                       "Filtro passa banda per R = 1200 #Omega",
+                       "Filtro passa banda per R = 2200 #Omega"};
   for (int i = 0; i < 5; ++i) {
     gtotR[i] = new TGraphErrors("ER" + name[i] + ".txt", "%lg%lg%lg%lg");
     gtotR[i]->SetMarkerStyle(25);
-    ftotR[i] = new TF1(f + i, Real_AmplitudeR, 2.7e3, 30e3, 6);
+    ftotR[i] = new TF1(fR + i, Real_AmplitudeR, 2.7e3, 30e3, 6);
     ftotR[i]->SetParameters(2.5, R[i], 10.16e-3, 10.15e-9, 37.41, 50);
     ftotR[i]->SetLineColor(kOrange + 10);
+    gtotR[i]->SetTitle(titleR[i]);
+    gtotR[i]->SetName(gR + i);
+    gtotR[i]->Write();
+    ftotR[i]->Write();
   }
   for (int i = 0; i < 5; ++i) {
     gtotM[i] = new TGraphErrors("EM" + name[i] + ".txt", "%lg%lg%lg%lg");
     gtotM[i]->SetMarkerStyle(25);
-    ftotM[i] = new TF1(f + i, Real_Amplitude_LC, 2.7e3, 30e3, 6);
+    ftotM[i] = new TF1(fM + i, Real_Amplitude_LC, 2.7e3, 30e3, 6);
     ftotM[i]->SetParameters(2.5, R[i], 10.16e-3, 10.15e-9, 37.41, 50);
     ftotM[i]->SetLineColor(kOrange + 10);
+    gtotM[i]->SetTitle(titleM[i]);
+    gtotM[i]->SetName(gM + i);
+    gtotM[i]->Write();
+    ftotM[i]->Write();
   }
   // fitting
   for (int i = 0; i < 5; ++i) {
@@ -53,11 +78,19 @@ void DataAnalysis2() {
   }
   Double_t w1R[5];
   Double_t w2R[5];
-  Double_t QR  [5];
+  Double_t QR[5];
   for (int i = 0; i < 5; ++i) {
     w1R[i] = H_R[i]->GetX(1 / sqrt(2), -10e10, w0);
     w2R[i] = H_R[i]->GetX(1 / sqrt(2), w0, 10e10);
-    QR  [i] = w0 / (w2R[i] - w1R[i]);
+    QR[i] = w0 / (w2R[i] - w1R[i]);
+  }
+  Double_t w1M[5];
+  Double_t w2M[5];
+  Double_t QM[5];
+  for (int i = 0; i < 5; ++i) {
+    w1M[i] = ftotM[i]->GetX(2.5 / sqrt(2), -10e10, w0);
+    w2M[i] = ftotM[i]->GetX(2.5 / sqrt(2), w0, 10e10);
+    QM[i] = w0 / (w2M[i] - w1M[i]);
   }
   // measuring f0
   Double_t f0_minR[5];   // calculated as the min x of the fit func (R)
@@ -90,10 +123,21 @@ void DataAnalysis2() {
     txt << "============================" << '\n';
     txt << '\n';
     txt << '\n';
-    txt << "==> Confronto tra Q misurato e Q stimato" << '\n';
+    txt << "==> Confronto tra Q misurato e Q stimato (R)" << '\n';
     for (int i = 0; i < 5; ++i) {
       txt << "Misurato"
-          << " (" << name[i] << "R):  " << QR  [i]
+          << " (" << name[i] << "R):  " << QR[i]
+          << "  ||  Stimato:  " << R[i] * sqrt(10.15e-9 / 10.16e-3) << "  +/-  "
+          << GetQErr(R[i], 10.16e-3, 10.15e-9, dR[i], (10.16e-3) * (0.01),
+                     (10.15e-9) * (0.01))
+          << '\n';
+    }
+    txt << '\n';
+    txt << '\n';
+    txt << "==> Confronto tra Q misurato e Q stimato (M)" << '\n';
+    for (int i = 0; i < 5; ++i) {
+      txt << "Misurato"
+          << " (" << name[i] << "M):  " << QM[i]
           << "  ||  Stimato:  " << R[i] * sqrt(10.15e-9 / 10.16e-3) << "  +/-  "
           << GetQErr(R[i], 10.16e-3, 10.15e-9, dR[i], (10.16e-3) * (0.01),
                      (10.15e-9) * (0.01))
@@ -177,4 +221,5 @@ void DataAnalysis2() {
   } else {
     std::cout << "Cannot Open File..." << '\n';
   }
+  file->Close();
 }
