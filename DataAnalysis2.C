@@ -127,10 +127,12 @@ void DataAnalysis2() {
     for (int i = 0; i < 5; ++i) {
       txt << "Misurato"
           << " (" << name[i] << "R):  " << QR[i]
-          << "  ||  Stimato:  " << R[i] * sqrt(10.15e-9 / 10.16e-3) << "  +/-  "
+          << "  ||  Stimato (Approx.):  " << R[i] * sqrt(10.15e-9 / 10.16e-3)
+          << "  +/-  "
           << GetQErr(R[i], 10.16e-3, 10.15e-9, dR[i], (10.16e-3) * (0.01),
                      (10.15e-9) * (0.01))
-          << '\n';
+          << "  ||  Stimato (Esatto):  "
+          << w0 / GetBandWidth(R[i], 10.16e-3, 10.15e-9) << '\n';
     }
     txt << '\n';
     txt << '\n';
@@ -141,7 +143,8 @@ void DataAnalysis2() {
           << "  ||  Stimato:  " << R[i] * sqrt(10.15e-9 / 10.16e-3) << "  +/-  "
           << GetQErr(R[i], 10.16e-3, 10.15e-9, dR[i], (10.16e-3) * (0.01),
                      (10.15e-9) * (0.01))
-          << '\n';
+          << "  ||  Stimato (Esatto):  "
+          << w0 / GetBandWidth(R[i], 10.16e-3, 10.15e-9) << '\n';
     }
     txt << '\n';
     txt << '\n';
