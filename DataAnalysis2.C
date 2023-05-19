@@ -2,10 +2,12 @@
 
 #include "Amp.h"
 #include "GetQ.h"
+#include "Phase.h"
 #include "TF1.h"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TGraphErrors.h"
+#include "TH1.h"
 
 void DataAnalysis2() {
   // creating a file
@@ -18,55 +20,118 @@ void DataAnalysis2() {
            (10.15e-9 * 0.01 * 10.15e-9 * 0.01) / (10.15e-9 * 10.15e-9));
   TString gR = "gR";
   TString gM = "gM";
+  TString gF = "gF";
   TString fR = "fR";
   TString fM = "fM";
+  TString fF = "fF";
   TString H = "H_{R}";
   TString name[5] = {"150", "330", "560", "1200", "2200"};
-  Double_t R[5] = {150.95, 328.98, 560.1, 1200,
-                   2194.8};  // la resistenza è effettivamente da 1200
+  Double_t R[5] = {150.95, 328.98, 560.1, 1179, 2194.8};
   Double_t dR[5] = {1.15095e-3, 1.32898e-3, 1.5601e-3, 0.011979, 0.012948};
   TGraphErrors *gtotR[5];
   TGraphErrors *gtotM[5];
+  TGraph *gtotF[5];
   TF1 *ftotR[5];
   TF1 *ftotM[5];
-  TString titleR[5] = {"Filtro arresta banda per R = 150 #Omega",
-                       "Filtro arresta banda per R = 330 #Omega",
-                       "Filtro arresta banda per R = 560 #Omega",
-                       "Filtro arresta banda per R = 1200 #Omega",
-                       "Filtro arresta banda per R = 2200 #Omega"};
-  TString titleM[5] = {"Filtro passa banda per R = 150 #Omega",
-                       "Filtro passa banda per R = 330 #Omega",
-                       "Filtro passa banda per R = 560 #Omega",
-                       "Filtro passa banda per R = 1200 #Omega",
-                       "Filtro passa banda per R = 2200 #Omega"};
+  TF1 *ftotF[5];
+  TString titleR[5] = {
+      "Risposta in ampiezza su R_{1}", "Risposta in ampiezza su R_{2}",
+      "Risposta in ampiezza su R_{3}", "Risposta in ampiezza su R_{4}",
+      "Risposta in ampiezza su R_{5}"};
+  TString titleM[5] = {
+      "Risposta in ampiezza su M_{1}", "Risposta in ampiezza su M_{2}",
+      "Risposta in ampiezza su M_{3}", "Risposta in ampiezza su M_{4}",
+      "Risposta in ampiezza su M_{5}"};
+  TString titleF[5] = {"Risposta in fase su R_{1}", "Risposta in fase su R_{2}",
+                       "Risposta in fase su R_{3}", "Risposta in fase su R_{4}",
+                       "Risposta in fase su R_{5}"};
+  TString titleX = "Frequenza (Hz)";
+  TString titleY = "Ampiezza (V)";
+  TString titleYF = "Fase (rad)";
   for (int i = 0; i < 5; ++i) {
     gtotR[i] = new TGraphErrors("ER" + name[i] + ".txt", "%lg%lg%lg%lg");
     gtotR[i]->SetMarkerStyle(25);
-    ftotR[i] = new TF1(fR + i, Real_AmplitudeR, 2.7e3, 30e3, 6);
+    ftotR[i] =
+        new TF1(fR + i, Real_AmplitudeR,
+                TMath::MinElement(gtotR[i]->GetN(), gtotR[i]->GetX()),
+                TMath::MaxElement(gtotR[i]->GetN(), gtotR[i]->GetX()), 6);
     ftotR[i]->SetParameters(2.5, R[i], 10.16e-3, 10.15e-9, 37.41, 50);
     ftotR[i]->SetLineColor(kOrange + 10);
     gtotR[i]->SetTitle(titleR[i]);
     gtotR[i]->SetName(gR + i);
-    gtotR[i]->Write();
-    ftotR[i]->Write();
+    gtotR[i]->GetHistogram()->GetXaxis()->SetTitle(titleX);
+    gtotR[i]->GetHistogram()->GetYaxis()->SetTitle(titleY);
   }
   for (int i = 0; i < 5; ++i) {
     gtotM[i] = new TGraphErrors("EM" + name[i] + ".txt", "%lg%lg%lg%lg");
     gtotM[i]->SetMarkerStyle(25);
-    ftotM[i] = new TF1(fM + i, Real_Amplitude_LC, 2.7e3, 30e3, 6);
+    ftotM[i] =
+        new TF1(fM + i, Real_Amplitude_LC,
+                TMath::MinElement(gtotM[i]->GetN(), gtotM[i]->GetX()),
+                TMath::MaxElement(gtotM[i]->GetN(), gtotM[i]->GetX()), 6);
     ftotM[i]->SetParameters(2.5, R[i], 10.16e-3, 10.15e-9, 37.41, 50);
     ftotM[i]->SetLineColor(kOrange + 10);
     gtotM[i]->SetTitle(titleM[i]);
     gtotM[i]->SetName(gM + i);
-    gtotM[i]->Write();
-    ftotM[i]->Write();
+    gtotM[i]->GetHistogram()->GetXaxis()->SetTitle(titleX);
+    gtotM[i]->GetHistogram()->GetYaxis()->SetTitle(titleY);
+  }
+  // phase
+  int j[5] = {0, 0, 0, 0, 0};
+  std::ifstream in[5];
+  for (int i = 0; i < 5; ++i) {
+    in[i].open("F" + name[i] + ".txt");
+    gtotF[i] = new TGraph();
+    Double_t x, y;
+    while (1) {
+      in[i] >> x >> y;
+      if (!in[i].good()) {
+        break;
+      }
+      gtotF[i]->SetPoint(j[i], x, (y - (0.000195723 * x)) * (M_PI / 180));
+      ++j[i];
+    }
+    in[i].close();
+    gtotF[i]->SetName(gF + i);
+    gtotF[i]->SetTitle(titleF[i]);
+    gtotF[i]->SetMarkerStyle(25);
+    ftotF[i] =
+        new TF1(fF + i, Real_PhaseR,
+                TMath::MinElement(gtotF[i]->GetN(), gtotF[i]->GetX()),
+                TMath::MaxElement(gtotF[i]->GetN(), gtotF[i]->GetX()), 5);
+    ftotF[i]->SetParameters(R[i], 10.16e-3, 10.15e-9, 37.41, 50);
+    ftotF[i]->SetLineColor(kOrange + 10);
+    gtotF[i]->GetHistogram()->GetXaxis()->SetTitle(titleX);
+    gtotF[i]->GetHistogram()->GetYaxis()->SetTitle(titleYF);
   }
   // fitting
   for (int i = 0; i < 5; ++i) {
     gtotR[i]->Fit(ftotR[i], "qs0");
+    gtotR[i]->GetHistogram()->GetYaxis()->SetRangeUser(
+        0, ftotR[i]->GetMaximum() + 0.2);
+    gtotR[i]->GetHistogram()->GetXaxis()->SetRangeUser(
+        TMath::MinElement(gtotR[i]->GetN(), gtotR[i]->GetX()),
+        TMath::MaxElement(gtotR[i]->GetN(), gtotR[i]->GetX()));
+    gtotR[i]->Write();
+    ftotR[i]->Write();
   }
   for (int i = 0; i < 5; ++i) {
     gtotM[i]->Fit(ftotM[i], "qs0");
+    gtotM[i]->GetHistogram()->GetYaxis()->SetRangeUser(
+        0, ftotM[i]->GetMaximum() + 0.2);
+    gtotM[i]->GetHistogram()->GetXaxis()->SetRangeUser(
+        TMath::MinElement(gtotM[i]->GetN(), gtotM[i]->GetX()),
+        TMath::MaxElement(gtotM[i]->GetN(), gtotM[i]->GetX()));
+    gtotM[i]->Write();
+    ftotM[i]->Write();
+  }
+  for (int i = 0; i < 5; ++i) {
+    gtotF[i]->Fit(ftotF[i], "qs0");
+    gtotF[i]->GetHistogram()->GetXaxis()->SetRangeUser(
+        TMath::MinElement(gtotF[i]->GetN(), gtotF[i]->GetX()),
+        TMath::MaxElement(gtotF[i]->GetN(), gtotF[i]->GetX()));
+    gtotF[i]->Write();
+    ftotF[i]->Write();
   }
   // measuring Q
   TF1 *H_R[5];
@@ -95,10 +160,10 @@ void DataAnalysis2() {
   // measuring f0
   Double_t f0_minR[5];   // calculated as the min x of the fit func (R)
   Double_t f0_fitR[5];   // calculated from the fit parameters (R)
-  Double_t df0_fitR[0];  // error on f0 from fit parameters (R)
+  Double_t df0_fitR[5];  // error on f0 from fit parameters (R)
   Double_t f0_minM[5];   // calculated as the min x of the fit func (M)
   Double_t f0_fitM[5];   // calculated from the fit parameters (M)
-  Double_t df0_fitM[0];  // error on f0 from fit parameters (M)
+  Double_t df0_fitM[5];  // error on f0 from fit parameters (M)
   for (int i = 0; i < 5; ++i) {
     f0_minR[i] = ftotR[i]->GetMinimumX();
     f0_fitR[i] =
@@ -219,8 +284,28 @@ void DataAnalysis2() {
       txt << "Chi quadro ridotto:  "
           << ftotM[i]->GetChisquare() / ftotM[i]->GetNDF() << '\n';
       txt << '\n';
+      txt << '\n';
+      txt << "==> Risultati Fit (Phi)" << '\n';
+      for (int i = 0; i < 5; ++i) {
+        txt << "- F" << name[i] << ":  " << '\n';
+        txt << "Resistenza R:  " << ftotF[i]->GetParameter(0) << "  +/-  "
+            << ftotF[i]->GetParError(0) << "  ohm" << '\n';
+        txt << "Induttanza L:  " << ftotF[i]->GetParameter(1) << "  +/-  "
+            << ftotF[i]->GetParError(1) << "  H" << '\n';
+        txt << "Capacità C:  " << ftotF[i]->GetParameter(2) << "  +/-  "
+            << ftotF[i]->GetParError(2) << "  F" << '\n';
+        txt << "Resistenza Induttore Rl:  " << ftotF[i]->GetParameter(3)
+            << "  +/-  " << ftotF[i]->GetParError(3) << "  ohm" << '\n';
+        txt << "Resistenza Generatore Rv:  " << ftotF[i]->GetParameter(4)
+            << "  +/-  " << ftotF[i]->GetParError(4) << "  ohm" << '\n';
+        txt << "Chi quadro e NDF:  " << ftotF[i]->GetChisquare() << "  ,  "
+            << ftotF[i]->GetNDF() << '\n';
+        txt << "Chi quadro ridotto:  "
+            << ftotF[i]->GetChisquare() / ftotF[i]->GetNDF() << '\n';
+        txt << '\n';
+      }
+      txt.close();
     }
-    txt.close();
   } else {
     std::cout << "Cannot Open File..." << '\n';
   }
