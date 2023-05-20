@@ -3,6 +3,7 @@
 #include "TFile.h"
 #include "TGraphErrors.h"
 #include "TLegend.h"
+#include "TLegendEntry.h"
 
 void Draw() {
   TFile *file = new TFile("MyDrawings.root");
@@ -77,6 +78,61 @@ void Draw() {
     ctotF[i]->cd();
     gF[i]->Draw("ape");
     fF[i]->Draw("same");
+  }
+  // building legends
+  for (int i = 0; i < 5; ++i) {
+    TLegend *l = ctotR[i]->BuildLegend();
+    TList *p = l->GetListOfPrimitives();
+    TIter next(p);
+    TObject *obj;
+    TLegendEntry *le;
+    int j = 0;
+    while ((obj = next())) {
+      le = (TLegendEntry *)obj;
+      ++j;
+      if (j == 2) {
+        le->SetLabel("Fit");
+      }
+      if (j == 1) {
+        le->SetLabel("Punti sperimentali");
+      }
+    }
+  }
+  for (int i = 0; i < 5; ++i) {
+    TLegend *l = ctotM[i]->BuildLegend();
+    TList *p = l->GetListOfPrimitives();
+    TIter next(p);
+    TObject *obj;
+    TLegendEntry *le;
+    int j = 0;
+    while ((obj = next())) {
+      le = (TLegendEntry *)obj;
+      ++j;
+      if (j == 2) {
+        le->SetLabel("Fit");
+      }
+      if (j == 1) {
+        le->SetLabel("Punti sperimentali");
+      }
+    }
+  }
+  for (int i = 0; i < 5; ++i) {
+    TLegend *l = ctotF[i]->BuildLegend();
+    TList *p = l->GetListOfPrimitives();
+    TIter next(p);
+    TObject *obj;
+    TLegendEntry *le;
+    int j = 0;
+    while ((obj = next())) {
+      le = (TLegendEntry *)obj;
+      ++j;
+      if (j == 2) {
+        le->SetLabel("Fit");
+      }
+      if (j == 1) {
+        le->SetLabel("Punti sperimentali");
+      }
+    }
   }
   // saving drawings
   for (int i = 0; i < 5; ++i) {
