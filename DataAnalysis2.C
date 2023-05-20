@@ -14,10 +14,11 @@ void DataAnalysis2() {
   TFile *file = new TFile("MyDrawings.root", "recreate");
   // creating functions and graphs
   const Double_t w0 = 1 / (2 * M_PI * sqrt(10.16e-3 * 10.15e-9));
-  const Double_t dw0 =
-      (1 / (2 * M_PI * sqrt(10.16e-3 * 10.15e-9))) *
+  /*const Double_t dw0 =
+      (1 / (2*2 * M_PI * sqrt(10.16e-3 * 10.15e-9))) *
       sqrt((10.16e-3 * 0.01 * 10.16e-3 * 0.01) / (10.16e-3 * 10.16e-3) +
-           (10.15e-9 * 0.01 * 10.15e-9 * 0.01) / (10.15e-9 * 10.15e-9));
+           (10.15e-9 * 0.01 * 10.15e-9 * 0.01) / (10.15e-9 * 10.15e-9));*/
+  const Double_t dw0 = w0 / 100;
   TString gR = "gR";
   TString gM = "gM";
   TString gF = "gF";
@@ -26,30 +27,32 @@ void DataAnalysis2() {
   TString fF = "fF";
   TString H = "H_{R}";
   TString name[5] = {"150", "330", "560", "1200", "2200"};
-  Double_t R[5] = {150.95, 328.98, 560.1, 1179, 2194.8};
-  Double_t dR[5] = {1.15095e-3, 1.32898e-3, 1.5601e-3, 0.011979, 0.012948};
+  const Double_t R[5] = {150.95, 328.98, 560.1, 1179, 2194.8};
+  const Double_t dR[5] = {1.15095e-3, 1.32898e-3, 1.5601e-3, 0.011979,
+                          0.012948};
   TGraphErrors *gtotR[5];
   TGraphErrors *gtotM[5];
   TGraph *gtotF[5];
   TF1 *ftotR[5];
   TF1 *ftotM[5];
   TF1 *ftotF[5];
-  TString titleR[5] = {
+  const TString titleR[5] = {
       "Risposta in ampiezza su R_{1}", "Risposta in ampiezza su R_{2}",
       "Risposta in ampiezza su R_{3}", "Risposta in ampiezza su R_{4}",
       "Risposta in ampiezza su R_{5}"};
-  TString titleM[5] = {
+  const TString titleM[5] = {
       "Risposta in ampiezza su M_{1}", "Risposta in ampiezza su M_{2}",
       "Risposta in ampiezza su M_{3}", "Risposta in ampiezza su M_{4}",
       "Risposta in ampiezza su M_{5}"};
-  TString titleF[5] = {"Risposta in fase su R_{1}", "Risposta in fase su R_{2}",
-                       "Risposta in fase su R_{3}", "Risposta in fase su R_{4}",
-                       "Risposta in fase su R_{5}"};
-  TString titleX = "Frequenza (Hz)";
-  TString titleY = "Ampiezza (V)";
-  TString titleYF = "Fase (rad)";
+  const TString titleF[5] = {
+      "Risposta in fase su R_{1}", "Risposta in fase su R_{2}",
+      "Risposta in fase su R_{3}", "Risposta in fase su R_{4}",
+      "Risposta in fase su R_{5}"};
+  const TString titleX = "Frequenza (Hz)";
+  const TString titleY = "Ampiezza (V)";
+  const TString titleYF = "Fase (rad)";
   for (int i = 0; i < 5; ++i) {
-    gtotR[i] = new TGraphErrors("ER" + name[i] + ".txt", "%lg%lg%lg%lg");
+    gtotR[i] = new TGraphErrors("ER" + name[i] + ".txt", "%lg%lg%lg");
     gtotR[i]->SetMarkerStyle(25);
     ftotR[i] =
         new TF1(fR + i, Real_AmplitudeR,
@@ -63,7 +66,7 @@ void DataAnalysis2() {
     gtotR[i]->GetHistogram()->GetYaxis()->SetTitle(titleY);
   }
   for (int i = 0; i < 5; ++i) {
-    gtotM[i] = new TGraphErrors("EM" + name[i] + ".txt", "%lg%lg%lg%lg");
+    gtotM[i] = new TGraphErrors("EM" + name[i] + ".txt", "%lg%lg%lg");
     gtotM[i]->SetMarkerStyle(25);
     ftotM[i] =
         new TF1(fM + i, Real_Amplitude_LC,
@@ -180,6 +183,17 @@ void DataAnalysis2() {
     df0_fitM[i] = GetF0Err(ftotM[i]->GetParameter(2), ftotM[i]->GetParameter(3),
                            ftotM[i]->GetParError(2), ftotM[i]->GetParError(3));
   }
+  double WeightedAverage;
+  double DeltaWeightedAverage;
+  double num = 0.;
+  double den = 0.;
+  for (int i = 0; i < 5; ++i) {
+    num +=
+        f0_fitR[i] / (pow(df0_fitR[i], 2)) + f0_fitM[i] / (pow(df0_fitM[i], 2));
+    den += 1 / pow(df0_fitR[i], 2) + 1 / pow(df0_fitM[i], 2);
+  }
+  WeightedAverage = num / den;
+  DeltaWeightedAverage = 1 / sqrt(den);
   // saving data
   std::ofstream txt("./Data2.txt", std::ofstream::out);
   if (txt.is_open()) {
@@ -240,6 +254,9 @@ void DataAnalysis2() {
       txt << '\n';
     }
     txt << '\n';
+    txt << "Media Pesata:  " << WeightedAverage << "  +/-  "
+        << DeltaWeightedAverage <<  "  Hz"<<'\n';
+    txt << '\n';
     txt << '\n';
     txt << "==> Risultati Fit (R)" << '\n';
     for (int i = 0; i < 5; ++i) {
@@ -284,28 +301,29 @@ void DataAnalysis2() {
       txt << "Chi quadro ridotto:  "
           << ftotM[i]->GetChisquare() / ftotM[i]->GetNDF() << '\n';
       txt << '\n';
-      txt << '\n';
-      txt << "==> Risultati Fit (Phi)" << '\n';
-      for (int i = 0; i < 5; ++i) {
-        txt << "- F" << name[i] << ":  " << '\n';
-        txt << "Resistenza R:  " << ftotF[i]->GetParameter(0) << "  +/-  "
-            << ftotF[i]->GetParError(0) << "  ohm" << '\n';
-        txt << "Induttanza L:  " << ftotF[i]->GetParameter(1) << "  +/-  "
-            << ftotF[i]->GetParError(1) << "  H" << '\n';
-        txt << "Capacità C:  " << ftotF[i]->GetParameter(2) << "  +/-  "
-            << ftotF[i]->GetParError(2) << "  F" << '\n';
-        txt << "Resistenza Induttore Rl:  " << ftotF[i]->GetParameter(3)
-            << "  +/-  " << ftotF[i]->GetParError(3) << "  ohm" << '\n';
-        txt << "Resistenza Generatore Rv:  " << ftotF[i]->GetParameter(4)
-            << "  +/-  " << ftotF[i]->GetParError(4) << "  ohm" << '\n';
-        txt << "Chi quadro e NDF:  " << ftotF[i]->GetChisquare() << "  ,  "
-            << ftotF[i]->GetNDF() << '\n';
-        txt << "Chi quadro ridotto:  "
-            << ftotF[i]->GetChisquare() / ftotF[i]->GetNDF() << '\n';
-        txt << '\n';
-      }
-      txt.close();
     }
+    txt << '\n';
+    txt << '\n';
+    txt << "==> Risultati Fit (Phi)" << '\n';
+    for (int i = 0; i < 5; ++i) {
+      txt << "- F" << name[i] << ":  " << '\n';
+      txt << "Resistenza R:  " << ftotF[i]->GetParameter(0) << "  +/-  "
+          << ftotF[i]->GetParError(0) << "  ohm" << '\n';
+      txt << "Induttanza L:  " << ftotF[i]->GetParameter(1) << "  +/-  "
+          << ftotF[i]->GetParError(1) << "  H" << '\n';
+      txt << "Capacità C:  " << ftotF[i]->GetParameter(2) << "  +/-  "
+          << ftotF[i]->GetParError(2) << "  F" << '\n';
+      txt << "Resistenza Induttore Rl:  " << ftotF[i]->GetParameter(3)
+          << "  +/-  " << ftotF[i]->GetParError(3) << "  ohm" << '\n';
+      txt << "Resistenza Generatore Rv:  " << ftotF[i]->GetParameter(4)
+          << "  +/-  " << ftotF[i]->GetParError(4) << "  ohm" << '\n';
+      txt << "Chi quadro e NDF:  " << ftotF[i]->GetChisquare() << "  ,  "
+          << ftotF[i]->GetNDF() << '\n';
+      txt << "Chi quadro ridotto:  "
+          << ftotF[i]->GetChisquare() / ftotF[i]->GetNDF() << '\n';
+      txt << '\n';
+    }
+    txt.close();
   } else {
     std::cout << "Cannot Open File..." << '\n';
   }

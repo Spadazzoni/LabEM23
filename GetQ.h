@@ -7,9 +7,13 @@ double GetQErr(Double_t r, Double_t l, Double_t c, Double_t dr, Double_t dl,
 }
 
 Double_t GetF0Err(Double_t l, Double_t c, Double_t dl, Double_t dc) {
-  return (1 / (2 * M_PI * sqrt(l * c))) *
-         sqrt((dl * dl) / (l * l) + (dc * dc) / (c * c));
+  return (1 / (2 * 2 * M_PI * sqrt(l * c))) * ((dl) / (l) + (dc) / (c));
 }
+
+/*Double_t GetF0Err(Double_t l, Double_t c, Double_t dl, Double_t dc) {
+  return (1 / (2 * 2 * M_PI * sqrt(l * c))) *
+         sqrt((dl * dl) / (l * l) + (dc * dc) / (c * c));
+}*/
 
 Double_t GetBandWidth(Double_t r, Double_t l, Double_t c) {
   return (1 / (sqrt(2 * l) * r * c)) *

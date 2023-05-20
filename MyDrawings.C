@@ -2,23 +2,30 @@
 #include "TF1.h"
 #include "TFile.h"
 #include "TGraphErrors.h"
+#include "TLegend.h"
 
 void Draw() {
   TFile *file = new TFile("MyDrawings.root");
   // extracting graphs and functions from file
   TF1 *fR[5];
   TF1 *fM[5];
+  TF1 *fF[5];
   TGraphErrors *gR[5];
   TGraphErrors *gM[5];
+  TGraph *gF[5];
   TString nameR = "fR";
   TString nameM = "fM";
+  TString nameF = "fF";
   TString gnameR = "gR";
   TString gnameM = "gM";
+  TString gnameF = "gF";
   for (int i = 0; i < 5; ++i) {
     fR[i] = (TF1 *)file->Get(nameR + i);
     fM[i] = (TF1 *)file->Get(nameM + i);
+    fF[i] = (TF1 *)file->Get(nameF + i);
     gR[i] = (TGraphErrors *)file->Get(gnameR + i);
     gM[i] = (TGraphErrors *)file->Get(gnameM + i);
+    gF[i] = (TGraph *)file->Get(gnameF + i);
   }
   // creating canvases
   TCanvas *ctotR[5];
@@ -32,13 +39,28 @@ void Draw() {
   TString pdfM[5] = {"PassaBanda150.pdf", "PassaBanda330.pdf",
                      "PassaBanda560.pdf", "PassaBanda1200.pdf",
                      "PassaBanda2200.pdf"};
+  TCanvas *ctotF[5];
+  TString cF = "cF";
+  TString MyCanvasF = "MyCanvasF";
+  TString pdfF[5] = {"Fase150.pdf", "Fase330.pdf", "Fase560.pdf",
+                     "Fase1200.pdf", "Fase2200.pdf"};
   for (int i = 0; i < 5; ++i) {
     ctotR[i] = new TCanvas(cR + i, MyCanvasR + i, 200, 200, 1000, 600);
     ctotR[i]->Print(pdfR[i] + "[");
+    ctotR[i]->SetGridx();
+    ctotR[i]->SetGridy();
   }
   for (int i = 0; i < 5; ++i) {
     ctotM[i] = new TCanvas(cM + i, MyCanvasM + i, 200, 200, 1000, 600);
     ctotM[i]->Print(pdfM[i] + "[");
+    ctotM[i]->SetGridx();
+    ctotM[i]->SetGridy();
+  }
+  for (int i = 0; i < 5; ++i) {
+    ctotF[i] = new TCanvas(cF + i, MyCanvasF + i, 200, 200, 1000, 600);
+    ctotF[i]->Print(pdfF[i] + "[");
+    ctotF[i]->SetGridx();
+    ctotF[i]->SetGridy();
   }
   // drawing
   for (int i = 0; i < 5; ++i) {
@@ -51,6 +73,11 @@ void Draw() {
     gM[i]->Draw("ape");
     fM[i]->Draw("same");
   }
+  for (int i = 0; i < 5; ++i) {
+    ctotF[i]->cd();
+    gF[i]->Draw("ape");
+    fF[i]->Draw("same");
+  }
   // saving drawings
   for (int i = 0; i < 5; ++i) {
     ctotR[i]->Print(pdfR[i]);
@@ -59,6 +86,10 @@ void Draw() {
   for (int i = 0; i < 5; ++i) {
     ctotM[i]->Print(pdfM[i]);
     ctotM[i]->Print(pdfM[i] + "]");
+  }
+  for (int i = 0; i < 5; ++i) {
+    ctotF[i]->Print(pdfF[i]);
+    ctotF[i]->Print(pdfF[i] + "]");
   }
   file->Close();
 }
